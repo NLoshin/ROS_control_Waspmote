@@ -1,5 +1,5 @@
 #include <WaspSensorSW.h>
-
+#include <serialComm.c>
 // Датчик растворенного в воде кислорода
 #define DO_SENSOR 2
 //Датчик pH
@@ -184,8 +184,12 @@ void setup()
 
 void loop()
 {
-
-
+  recvWithStartEndMarkers();
+  if (newData == true) {
+    parseData();
+    showParsedData();
+    newData = false;
+  }
 }
 
 
