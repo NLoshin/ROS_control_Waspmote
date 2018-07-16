@@ -94,6 +94,7 @@ boolean chechId(uint8_t _sensorId) {
 float getSensorData (uint8_t _sensorId, uint8_t typeOut=0) {
   float sensorVal;
   float sensorVal_2;
+  USB.printf("S: %d ",_sensorId);
   if ( chechId(_sensorId) )
   {
     switch ( _sensorId )
@@ -134,15 +135,11 @@ float getSensorData (uint8_t _sensorId, uint8_t typeOut=0) {
           break;
       #endif
     }
-    USB.print(F("S: "));
-    USB.print(sensorId);
     USB.print(F(" V:"));
     USB.println(sensorVal);
   }
   else
   {
-    USB.print(F("S: "));
-    USB.print(sensorId);
     USB.println(F("NO"));
   }
 }
@@ -150,6 +147,8 @@ float getSensorData (uint8_t _sensorId, uint8_t typeOut=0) {
 void setCalPoints (uint8_t sensorId,float _cal_point_01=0,float _cal_point_02=0,float _cal_point_03=0,float _cal_point_04=0) {
   float sensorVal;
   float sensorVal_2;
+  
+  USB.printf("Calibrating sensor %d ...",sensorId);
   if ( chechId(sensorId) && sensorId != 0)
   {
     switch ( sensorId )
@@ -175,11 +174,11 @@ void setCalPoints (uint8_t sensorId,float _cal_point_01=0,float _cal_point_02=0,
           break;
       #endif
     }
-    USB.printf("<set:%d:1",sensorId);
+    USB.println(F("OK"));
   }
   else
   {
-    USB.printf("<set:%d:0",sensorId);
+    USB.println(F("NO"));
   }
 }
 
@@ -210,22 +209,23 @@ void analizData() {
 
 void setup() {
   USB.ON();
-  //USB.println(F("Ready to work"));
+  USB.println(F("Ready to work"));
   // Калибровка подключенных датчиков
+  USB.println(F("Calibration..."));
   setCalPoints (DO_SENSOR,2.65,0);
   setCalPoints(PH_SENSOR,1.985,2.070,2.227,23.7);
   setCalPoints(EC_SENSOR,10500,40000,197,150);
+  USB.println(F("OK"));
   turbidity.ON();
   Water.ON(); 
 }
-
 void loop() {
   if ( millis()-lastT > 10000 )
   {
-	  for ( int i = 1; i<6; i++)
-	  {
-		  getSensorData(i);
-	  }
+	for ( int i = 1; i<6; i++)
+	{
+	  getSensorData(i);
+	}
 	lastT = millis();
   }
   if ( USB.available() ) readData();
