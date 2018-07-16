@@ -32,6 +32,7 @@ const float concentrations[] = {point1, point2, point3 };
 const float voltages_Ca[] = {point1_volt_Ca, point2_volt_Ca, point3_volt_Ca}; 
 const float voltages_NO3[] = {point1_volt_NO3, point2_volt_NO3, point3_volt_NO3 }; 
 const float voltages_F[] = { point1_volt_F, point2_volt_F, point3_volt_F }; 
+float lastT = 0;
 //======================================================================
 void setup()
 {
@@ -79,6 +80,6 @@ void loop()
     USB.print(pHValue);
     USB.print(F(">\n"));
     SWIonsBoard.OFF();
-	  lastT = millis();
+    lastT = millis();
   }
 }
