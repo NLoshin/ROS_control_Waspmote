@@ -12,8 +12,6 @@ const float calibs[][3]=
   {1.0,   2.0,    3.0}
 };
 
-
-
 float lastT = 0;
 
 void setup()
@@ -28,30 +26,33 @@ void loop()
   {
     SWIonsBoard.ON();
     USB.print(F("<"));
-    
     float volts_A = sens_A.read();
     delay(50);
-    USB.print(F("A:"));
-    USB.print(volts_A);
+    USB.print(F("<A:"));
+    USB.println(volts_A);
+    USB.println(F(">"));
     
     float volts_B = sens_B.read();
     delay(50);
-    USB.print(F(" | B:"));
+    USB.print(F("<B:"));
     USB.print(volts_B);
+    USB.println(F(">"));
     
     float volts_C = sens_C.read();
     delay(50);
-    USB.print(F(" | C:"));
+    USB.print(F("<C:"));
     USB.print(volts_C);
+    USB.println(F(">"));
     
     float volts_D = sens_D.read();
     delay(50);
-    USB.print(F(" | D:"));
+    USB.print(F("<D:"));
     USB.print(volts_D);
+    USB.println(F(">"));
     
     float tempValue = tempSensor.read();
     delay(50);
-    USB.print(F(" | Temp:"));
+    USB.print(F("<Temp:"));
     USB.print(tempValue);
     USB.println(F(">"));
     
