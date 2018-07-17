@@ -32,7 +32,7 @@ class Waspmote:
 			print(strok)
 			dataFile.write(strok)
 			dataFile.write('\n')
-			dataFile.close()
+			dataFile.close() 
 		else:
 			return None
 
@@ -42,6 +42,6 @@ class Waspmote:
 
 
 if __name__ == "__main__":
-	wasp0 = Waspmote('COM17', 115200)
+	wasp0 = Waspmote('/dev/ttyS0', 115200) //'COM17'
 	while( not wasp0.stopState):
 		wasp0.readData()
