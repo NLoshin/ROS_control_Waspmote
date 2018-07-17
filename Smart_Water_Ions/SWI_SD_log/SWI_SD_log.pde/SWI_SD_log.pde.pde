@@ -1,7 +1,6 @@
 #include <smartWaterIons.h>
 char fileIn[64];
-long timeW = 0;
-char filename[]="FILEDATA.TXT";
+char filename[]="DATA_SWI.TXT";
 // Подключение
 
 ionSensorClass sens_A(SOCKET_A);
