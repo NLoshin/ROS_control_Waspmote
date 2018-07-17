@@ -1,5 +1,5 @@
 #include <smartWaterIons.h>
-char fileIn[10];
+char fileIn[64];
 long timeW = 0;
 char filename[]="FILEDATA.TXT";
 // Подключение
@@ -56,4 +56,3 @@ void loop()
     lastT = millis();
   }
 }
-
