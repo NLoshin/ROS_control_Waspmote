@@ -227,6 +227,9 @@ void setup() {
   turbidity.ON();
   Water.ON(); 
 }
+void getTime(){
+	
+}
 void loop() {
   if ( millis()-lastT > 10000 )
   {

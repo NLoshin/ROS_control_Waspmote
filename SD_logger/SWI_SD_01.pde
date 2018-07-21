@@ -101,6 +101,10 @@ void setup()
 {
   SWIonsBoard.ON();
   USB.ON();
+  SD.ON();
+  SD.create(filename);
+  USB.println(F("Ready to work"));
+  SD.appendln(filename,"Start logging data.");
 }
 
 void loop()
