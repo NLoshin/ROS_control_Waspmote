@@ -3,21 +3,23 @@
 char buffer[255];
 char fileIn[64];
 char filename[] = "SWI_LOG.TXT";
+
 #define USB_DEBUG 1
-#define T_SENSOR 1
-#define A_SENSOR 2
-#define B_SENSOR 3
-#define C_SENSOR 4
-#define D_SENSOR 5
+#define A_SENSOR 1
+#define B_SENSOR 2
+#define C_SENSOR 3
+#define D_SENSOR 4
+#define E_SENSOR 5
 // Подключение
 ionSensorClass sens_A(SOCKET_A);
 ionSensorClass sens_B(SOCKET_B);
 ionSensorClass sens_C(SOCKET_C);
 ionSensorClass sens_D(SOCKET_D);
-pt1000Class tempSensor;
+ionSensorClass sens_E(SOCKET_E);
+//pt1000Class tempSensor;
 
-char *sensName[] = {"TIME", "TEMP", "SENS_A", "SENS_B", "SENS_C", "SENS_D"};
-const uint8_t allSensorId[] = {T_SENSOR, A_SENSOR, B_SENSOR, C_SENSOR, D_SENSOR};
+char *sensName[] = {"TIME", "SENS_NO3", "SENS_NH4+", "SENS_NO2", "SENS_Cu2", "SENS_mdrx11"};
+const uint8_t allSensorId[] = {A_SENSOR, B_SENSOR, C_SENSOR, D_SENSOR,E_SENSOR, };
 // Массивы точек калибровочной концентрации
 const float calibs[][3] =
 {
@@ -33,18 +35,14 @@ void SD_write_Time() {
   TT[0] = (millis() / 3600000);
   snprintf(buffer, sizeof(buffer), "(Time:%dh%dm%ds)", TT[0], TT[1], TT[2]);
   SD.append(filename, buffer);
-#ifdef USB_DEBUG
-  USB.print("Write to file: ");
-  USB.println(buffer);
-#endif
+  USB.print(buffer);
 }
 void SD_write_part(char _metk[], float _data = 0) {
   char s[16];
   dtostrf(_data, 3, 2, s);
   snprintf(buffer, sizeof(buffer), "(%s|%s)", _metk, s);
   SD.append(filename, buffer);
-  USB.print("Write to file: ");
-  USB.println(buffer);
+  USB.print(buffer);
 }
 
 boolean chechId(uint8_t _sensorId) {
@@ -66,9 +64,6 @@ float getSensorData (uint8_t _sensorId) {
   {
     switch ( _sensorId )
     {
-      case T_SENSOR:
-        sensorVal = tempSensor.read();
-        break;
       case A_SENSOR:
         sensorVal = sens_A.read();
         break;
@@ -80,6 +75,9 @@ float getSensorData (uint8_t _sensorId) {
         break;
       case D_SENSOR:
         sensorVal = sens_D.read();
+        break;
+      case E_SENSOR:
+        sensorVal = sens_E.read();
         break;
     }
 #ifdef USB_DEBUG
@@ -104,6 +102,7 @@ void setup()
   SD.ON();
   SD.create(filename);
   USB.println(F("Ready to work"));
+  SD.appendln(filename,"...");
   SD.appendln(filename,"Start logging data.");
 }
 
@@ -118,6 +117,7 @@ void loop()
       SD_write_part(sensName[i], getSensorData(i));
     }
     SD.appendln(filename, ".");
+	USB.println();
 #ifdef USB_DEBUG
     USB.println(F("\n-----FILE CONTENTS----------"));
     SD.showFile(filename);
