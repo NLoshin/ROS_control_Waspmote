@@ -11,22 +11,21 @@ char filename[] = "SWI_LOG.TXT";
 #define D_SENSOR 4
 #define E_SENSOR 5
 // Подключение
-ionSensorClass sens_A(SOCKET_A);
-ionSensorClass sens_B(SOCKET_B);
-ionSensorClass sens_C(SOCKET_C);
-ionSensorClass sens_D(SOCKET_D);
-ionSensorClass sens_E(SOCKET_E);
+ionSensorClass sens[]{SOCKET_A,SOCKET_B,SOCKET_C,SOCKET_D,SOCKET_E};
 //pt1000Class tempSensor;
-
 char *sensName[] = {"TIME", "SENS_NO3", "SENS_NH4+", "SENS_NO2", "SENS_Cu2", "SENS_mdrx11"};
-const uint8_t allSensorId[] = {A_SENSOR, B_SENSOR, C_SENSOR, D_SENSOR,E_SENSOR, };
+const uint8_t allSensorId[] = {A_SENSOR, B_SENSOR, C_SENSOR, D_SENSOR, E_SENSOR};
+pt1000Class TemperatureSensor;
 // Массивы точек калибровочной концентрации
 const float calibs[][3] =
 {
   {10.0,  100.0,  1000.0},
-  {1.0,   2.0,    3.0}
+  {1.0,   2.0,    3.0},	// калибровочные точки для NO3
+  {1.0,   2.0,    3.0},	// калибровочные точки для NH4+
+  {1.0,   2.0,    3.0},	// калибровочные точки для NO2
+  {1.0,   2.0,    3.0}	// калибровочные точки для Cu2
 };
-
+float sensVolt , sensCons;
 float lastT = 0;
 void SD_write_Time() {
   int TT[3];
@@ -37,10 +36,12 @@ void SD_write_Time() {
   SD.append(filename, buffer);
   USB.print(buffer);
 }
-void SD_write_part(char _metk[], float _data = 0) {
-  char s[16];
-  dtostrf(_data, 3, 2, s);
-  snprintf(buffer, sizeof(buffer), "(%s|%s)", _metk, s);
+void SD_write_part(char _metk[], float _data = 0, float _data2 = 0) {
+  char s1[16];
+  char s2[16];
+  dtostrf(_data, 3, 2, s1);
+  dtostrf(_data2, 3, 2, s2);
+  snprintf(buffer, sizeof(buffer), "(%s:%sv:%sppm/mg*L-1)", _metk, s1, s2);
   SD.append(filename, buffer);
   USB.print(buffer);
 }
@@ -55,57 +56,18 @@ boolean chechId(uint8_t _sensorId) {
   return chechIdorId;
 }
 
-float getSensorData (uint8_t _sensorId) {
-  float sensorVal;
-//#ifdef USB_DEBUG
-  //USB.printf("S: %d ", _sensorId);
-//#endif
-  if ( chechId(_sensorId) )
-  {
-    switch ( _sensorId )
-    {
-      case A_SENSOR:
-        sensorVal = sens_A.read();
-        break;
-      case B_SENSOR:
-        sensorVal = sens_B.read();
-        break;
-      case C_SENSOR:
-        sensorVal = sens_C.read();
-        break;
-      case D_SENSOR:
-        sensorVal = sens_D.read();
-        break;
-      case E_SENSOR:
-        sensorVal = sens_E.read();
-        break;
-    }
-//#ifdef USB_DEBUG
-    //USB.print(F(" V:"));
-    //USB.println(sensorVal);
-//#endif
-    return sensorVal;
-  }
-  else
-  {
-//#ifdef USB_DEBUG
-    //USB.println(F("NO"));
-//#endif
-  }
-}
-
-
 void setup()
 {
+  SWIonsBoard.ON();
   USB.ON();
   SD.ON();
   SD.create(filename);
   USB.println(F("Ready to work"));
   SD.appendln(filename,"...");
   SD.appendln(filename,"Start logging data.");
-  SWIonsBoard.ON();
-  sens_A.setCalibrationPoints(calibs[][1], calibs[][0], 3);
-  
+  for (int i = 1;i<5;i++)
+    sens[i].setCalibrationPoints(calibs[i], calibs[0], 3); 
+ 
   //pHSensor.setpHCalibrationPoints(cal_point_10, cal_point_7, cal_point_4, cal_temperature);
 }
 
@@ -114,13 +76,16 @@ void loop()
   //if ( millis() - lastT > 10000 )
   //{
     //SWIonsBoard.ON();
+  float temperature = TemperatureSensor.read();
     SD_write_Time();
     for ( int i = 1; i < 6; i++)
     {
-      SD_write_part(sensName[i], getSensorData(i));
+      sensVolt = sens[i].read();
+      sensCons = sens[i].calculateConcentration(sensVolt);
+      SD_write_part(sensName[i], sensVolt, sensCons );
     }
     SD.appendln(filename, ".");
-	USB.println();
+  USB.println();
 //#ifdef USB_DEBUG
     //USB.println(F("\n-----FILE CONTENTS----------"));
     //SD.showFile(filename);

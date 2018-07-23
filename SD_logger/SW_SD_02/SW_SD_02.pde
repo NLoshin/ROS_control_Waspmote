@@ -4,13 +4,13 @@ char buffer[255];
 char fileIn[64];
 char filename[] = "SW_LOG.TXT";
 #define USB_DEBUG 1
-#define DO_SENSOR 1
-#define PH_SENSOR 2
-#define TEMP_SENSOR 3
+#define TEMP_SENSOR 1
+#define DO_SENSOR 2
+#define PH_SENSOR 3
 #define EC_SENSOR 4
 #define TUR_SENSOR 5
 
-char *sensName[] = {"TIME", "DO", "PH", "TEMP", "EC", "TUR"};
+char *sensName[] = {"TIME","TEMP", "DO", "PH", "EC", "TUR"};
 const  uint8_t allSensorId[] = {DO_SENSOR, PH_SENSOR, TEMP_SENSOR, EC_SENSOR, TUR_SENSOR};
 
 DOClass DOSensor;// Датчик растворенного в воде кислорода
@@ -101,16 +101,17 @@ boolean chechId(uint8_t _sensorId) {
   return chechIdorId;
 }
 
-float getSensorData (uint8_t _sensorId, uint8_t typeOut = 0) {
+float getSensorData (uint8_t _sensorId, uint8_t typeOut = 1) {
   float sensorVal;
   float sensorVal_2;
-#ifdef USB_DEBUG
-  USB.printf("S: %d ", _sensorId);
-#endif
+  //USB.printf("S: %d ", _sensorId);
   if ( chechId(_sensorId) )
   {
     switch ( _sensorId )
     {
+      case TEMP_SENSOR:
+        sensorVal = temperatureSensor.readTemperature();
+        break;
       case DO_SENSOR:
         sensorVal = DOSensor.readDO();
         if ( typeOut != 0) sensorVal = DOSensor.DOConversion(sensorVal);
@@ -123,9 +124,6 @@ float getSensorData (uint8_t _sensorId, uint8_t typeOut = 0) {
           sensorVal = pHSensor.pHConversion(sensorVal, temp);
         }
         break;
-      case TEMP_SENSOR:
-        sensorVal = temperatureSensor.readTemperature();
-        break;
       case EC_SENSOR:
         sensorVal = ConductivitySensor.readConductivity();
         if ( typeOut != 0)
@@ -137,17 +135,13 @@ float getSensorData (uint8_t _sensorId, uint8_t typeOut = 0) {
         sensorVal = turbidity.getTurbidity();
         break;
     }
-#ifdef USB_DEBUG
-    USB.print(F(" V:"));
-    USB.println(sensorVal);
-#endif
+    //USB.print(F(" V:"));
+    //USB.println(sensorVal);
     return sensorVal;
   }
   else
   {
-#ifdef USB_DEBUG
-    USB.println(F("NO"));
-#endif
+    //USB.println(F("NO"));
   }
 }
 
@@ -219,9 +213,9 @@ void setup() {
   USB.println(F("Ready to work"));
   // Калибровка подключенных датчиков
   USB.println(F("Calibration..."));
-  setCalPoints (DO_SENSOR, 2.65, 0);
-  setCalPoints(PH_SENSOR, 1.985, 2.070, 2.227, 23.7);
-  setCalPoints(EC_SENSOR, 10500, 40000, 197, 150);
+  setCalPoints (DO_SENSOR, 0.51, 0);
+  setCalPoints(PH_SENSOR, 1.99, 2.07, 2.15, 27.0); //откалиброван
+  setCalPoints(EC_SENSOR, 12880, 80000, 97, 29);  // 
   USB.println(F("OK"));
   turbidity.ON();
   Water.ON();
@@ -229,9 +223,9 @@ void setup() {
 }
 
 void loop() {
-  if ( millis() - lastT > 10000 )
-  {
-    lastT = millis();
+  //if ( millis() - lastT > 10000 )
+  //{
+    //lastT = millis();
     SD_write_Time();
     for ( int i = 1; i < 6; i++)
     {
@@ -242,7 +236,7 @@ void loop() {
     //USB.println(F("\n-----FILE CONTENTS----------"));
     //SD.showFile(filename);
     //USB.println(F("\n-----End_FILE---------------"));
-  }
+  //}
   //if ( USB.available() ) readData();
   //if ( newData ) analizData();
 }
